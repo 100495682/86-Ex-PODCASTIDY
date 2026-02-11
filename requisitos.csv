@@ -1,1 +1,15 @@
+id,texto,tipo,subsistema,smart,ccc,trazable,verificable,no_ambiguo,comentarios
+RF-1,"El sistema leerá un CSV con los campos id, date, user, source, topic, text, storing, score, sentiment, tags almacenando su contenido en un sistema de gestión de datos persistente.",Funcional,Carga de datos,,,,,,
+RF-2,"El sistema solo aceptará solicitudes a través del método HTTP GET.",Funcional,Validación de datos,,,,,,
+RF-3,"El sistema solo aceptará solicitudes con parámetros date, user y topic.",Funcional,Validación de datos,,,,,,
+RF-4,"El sistema rechazará solicitudes con parámetros no reconocidos devolviendo una métrica de error correspondiente.",Funcional,Validación de datos,,,,,,
+RF-5,"El sistema rechazará solicitudes con valores inválidos para date, user o topic devolviendo una métrica de error correspondiente.",Funcional,Validación de datos,,,,,,
+RF-6,"El sistema generará observaciones en un almacén de datos a partir de las entradas recibidas.",Funcional,Generación de datos,,,,,,
+RF-7,"El sistema generará información derivada de cada entrada como polarity, tags y score.",Funcional,Generación de datos,,,,,,
+RF-8,"El sistema generará un resumen del contenido de las entradas seleccionadas con un máximo de 200 caracteres.",Funcional,Resumen de datos,,,,,,
+RF-9,"El sistema generará un resumen en lenguaje natural de máximo 200 palabras describiendo el sentimiento global de las entradas seleccionadas.",Funcional,Resumen de datos,,,,,,
+RF-10,"El sistema generará una visualización tipo gráfico de barras representando la polaridad de las entradas seleccionadas.",Funcional,Visualización,,,,,,
+RF-11,"El sistema generará recomendaciones de otros topics basadas en el análisis de las entradas seleccionadas.",Funcional,Recomendación,,,,,,
+RFN-1,"El sistema expondrá su funcionalidad a través de una API documentada mediante OpenAPI.",No funcional,API,,,,,,
+RFN-2,"El sistema garantizará que las comunicaciones con la API estén protegidas mediante HTTPS o autenticación.",No funcional,Seguridad,,,,,,
 
