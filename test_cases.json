@@ -1,1 +1,407 @@
+[
+  {
+    "id": "TC-RF1-01",
+    "requirement_id": "RF-1",
+    "title": "Carga de CSV válida y persistencia",
+    "preconditions": [
+      "Existe un sistema de datos persistente disponible (DB/almacén).",
+      "El sistema tiene permisos de escritura."
+    ],
+    "input": {
+      "csv_file": "data_valid.csv",
+      "rows_example": [
+        {
+          "id": "u1",
+          "date": "2026-01-01",
+          "user": "user_001",
+          "source": "web",
+          "topic": "music",
+          "text": "Me encantó el episodio",
+          "storing": "cdnA",
+          "score": 0.8,
+          "sentiment": "positive",
+          "tags": "happy,fun"
+        }
+      ]
+    },
+    "steps": [
+      "Ejecutar el proceso de carga del CSV.",
+      "Consultar el almacén persistente para verificar inserción."
+    ],
+    "expected": {
+      "result": "SUCCESS",
+      "persisted_records_count": ">= 1",
+      "schema": "Contiene exactamente los campos esperados"
+    }
+  },
+  {
+    "id": "TC-RF1-02",
+    "requirement_id": "RF-1",
+    "title": "Rechazo de CSV con columnas faltantes",
+    "preconditions": ["Existe un sistema de datos persistente disponible."],
+    "input": {
+      "csv_file": "data_missing_columns.csv",
+      "missing_columns": ["sentiment", "tags"]
+    },
+    "steps": ["Ejecutar el proceso de carga del CSV."],
+    "expected": {
+      "result": "ERROR",
+      "error_metric": "BAD_CSV_SCHEMA",
+      "persisted_records_count": 0
+    }
+  },
 
+  {
+    "id": "TC-RF2-01",
+    "requirement_id": "RF-2",
+    "title": "Acepta solicitudes HTTP GET",
+    "preconditions": ["API en ejecución."],
+    "input": {
+      "http_method": "GET",
+      "query_params": { "date": "2026-01-01", "user": "user_001", "topic": "music" }
+    },
+    "steps": ["Enviar solicitud a la API con método GET."],
+    "expected": {
+      "result": "SUCCESS",
+      "http_status": [200, 206]
+    }
+  },
+  {
+    "id": "TC-RF2-02",
+    "requirement_id": "RF-2",
+    "title": "Rechaza solicitudes que no sean GET",
+    "preconditions": ["API en ejecución."],
+    "input": {
+      "http_method": "POST",
+      "query_params": { "date": "2026-01-01", "user": "user_001", "topic": "music" }
+    },
+    "steps": ["Enviar solicitud a la API con método POST."],
+    "expected": {
+      "result": "ERROR",
+      "http_status": 400,
+      "error_metric": "METHOD_NOT_ALLOWED"
+    }
+  },
+
+  {
+    "id": "TC-RF3-01",
+    "requirement_id": "RF-3",
+    "title": "Acepta solicitudes solo con parámetros date, user y topic",
+    "preconditions": ["API en ejecución."],
+    "input": {
+      "http_method": "GET",
+      "query_params": { "date": "2026-01-01", "user": "user_001", "topic": "music" }
+    },
+    "steps": ["Enviar solicitud GET con exactamente esos parámetros."],
+    "expected": {
+      "result": "SUCCESS",
+      "http_status": 200
+    }
+  },
+  {
+    "id": "TC-RF3-02",
+    "requirement_id": "RF-3",
+    "title": "Rechaza solicitudes con parámetros faltantes",
+    "preconditions": ["API en ejecución."],
+    "input": {
+      "http_method": "GET",
+      "query_params": { "date": "2026-01-01", "user": "user_001" }
+    },
+    "steps": ["Enviar solicitud GET sin 'topic'."],
+    "expected": {
+      "result": "ERROR",
+      "http_status": 400,
+      "error_metric": "MISSING_PARAMETER"
+    }
+  },
+
+  {
+    "id": "TC-RF4-01",
+    "requirement_id": "RF-4",
+    "title": "Rechaza parámetros no reconocidos con métrica de error",
+    "preconditions": ["API en ejecución."],
+    "input": {
+      "http_method": "GET",
+      "query_params": { "date": "2026-01-01", "user": "user_001", "topic": "music", "foo": "bar" }
+    },
+    "steps": ["Enviar solicitud GET con un parámetro extra no permitido."],
+    "expected": {
+      "result": "ERROR",
+      "http_status": 400,
+      "error_metric": "UNKNOWN_PARAMETER"
+    }
+  },
+
+  {
+    "id": "TC-RF5-01",
+    "requirement_id": "RF-5",
+    "title": "Rechaza valores inválidos en date",
+    "preconditions": ["API en ejecución."],
+    "input": {
+      "http_method": "GET",
+      "query_params": { "date": "2026-99-99", "user": "user_001", "topic": "music" }
+    },
+    "steps": ["Enviar solicitud con date inválida."],
+    "expected": {
+      "result": "ERROR",
+      "http_status": 400,
+      "error_metric": "INVALID_VALUE"
+    }
+  },
+  {
+    "id": "TC-RF5-02",
+    "requirement_id": "RF-5",
+    "title": "Rechaza valores inválidos en user",
+    "preconditions": ["API en ejecución."],
+    "input": {
+      "http_method": "GET",
+      "query_params": { "date": "2026-01-01", "user": "", "topic": "music" }
+    },
+    "steps": ["Enviar solicitud con user vacío."],
+    "expected": {
+      "result": "ERROR",
+      "http_status": 400,
+      "error_metric": "INVALID_VALUE"
+    }
+  },
+  {
+    "id": "TC-RF5-03",
+    "requirement_id": "RF-5",
+    "title": "Rechaza valores inválidos en topic",
+    "preconditions": ["API en ejecución."],
+    "input": {
+      "http_method": "GET",
+      "query_params": { "date": "2026-01-01", "user": "user_001", "topic": "" }
+    },
+    "steps": ["Enviar solicitud con topic vacío."],
+    "expected": {
+      "result": "ERROR",
+      "http_status": 400,
+      "error_metric": "INVALID_VALUE"
+    }
+  },
+
+  {
+    "id": "TC-RF6-01",
+    "requirement_id": "RF-6",
+    "title": "Genera observaciones y las guarda en almacén",
+    "preconditions": [
+      "El CSV ha sido cargado o existen entradas recibidas por la API.",
+      "Existe almacén de observaciones disponible."
+    ],
+    "input": {
+      "entries": [
+        { "id": "u1", "date": "2026-01-01", "user": "user_001", "source": "web", "topic": "music", "text": "Genial", "storing": "cdnA" }
+      ]
+    },
+    "steps": ["Ejecutar la generación de observaciones a partir de las entradas."],
+    "expected": {
+      "result": "SUCCESS",
+      "observations_created_count": ">= 1",
+      "observations_persisted": true
+    }
+  },
+
+  {
+    "id": "TC-RF7-01",
+    "requirement_id": "RF-7",
+    "title": "Genera polarity, tags y score para una entrada",
+    "preconditions": ["Existe al menos una entrada válida en el sistema."],
+    "input": {
+      "entry": { "text": "Me ha gustado mucho este episodio", "topic": "music" }
+    },
+    "steps": ["Procesar la entrada para derivar atributos."],
+    "expected": {
+      "result": "SUCCESS",
+      "derived_fields_present": ["polarity", "tags", "score"],
+      "types": { "polarity": "string/enum", "tags": "list/string", "score": "number" }
+    }
+  },
+
+  {
+    "id": "TC-RF8-01",
+    "requirement_id": "RF-8",
+    "title": "Resumen de contenido con máximo 200 caracteres",
+    "preconditions": ["Existen entradas seleccionadas."],
+    "input": {
+      "selected_entries": [
+        { "text": "Texto largo ... (más de 200 caracteres combinados si se quiere)" }
+      ]
+    },
+    "steps": ["Solicitar resumen del contenido de las entradas seleccionadas."],
+    "expected": {
+      "result": "SUCCESS",
+      "summary_max_length_chars": 200
+    }
+  },
+  {
+    "id": "TC-RF8-02",
+    "requirement_id": "RF-8",
+    "title": "Resumen se recorta/limita si supera 200 caracteres",
+    "preconditions": ["Existen entradas seleccionadas con texto largo."],
+    "input": {
+      "selected_entries": [
+        { "text": "Texto suficientemente largo para provocar que el resumen generado supere 200 caracteres." }
+      ]
+    },
+    "steps": ["Solicitar resumen."],
+    "expected": {
+      "result": "SUCCESS",
+      "summary_length_chars": "<= 200"
+    }
+  },
+
+  {
+    "id": "TC-RF9-01",
+    "requirement_id": "RF-9",
+    "title": "Resumen en lenguaje natural con máximo 200 palabras sobre sentimiento global",
+    "preconditions": ["Existen entradas seleccionadas con sentimiento diverso."],
+    "input": {
+      "selected_entries": [
+        { "text": "Me encanta", "sentiment": "positive" },
+        { "text": "No me gustó", "sentiment": "negative" }
+      ]
+    },
+    "steps": ["Solicitar resumen global de sentimiento."],
+    "expected": {
+      "result": "SUCCESS",
+      "summary_max_words": 200,
+      "mentions_global_sentiment": true
+    }
+  },
+
+  {
+    "id": "TC-RF10-01",
+    "requirement_id": "RF-10",
+    "title": "Visualización en gráfico de barras de la polaridad de entradas seleccionadas",
+    "preconditions": ["Existen entradas seleccionadas con polaridad calculada."],
+    "input": {
+      "selected_entries": [
+        { "id": "e1", "polarity": "positive" },
+        { "id": "e2", "polarity": "negative" }
+      ]
+    },
+    "steps": ["Solicitar la visualización de polaridad."],
+    "expected": {
+      "result": "SUCCESS",
+      "chart_type": "bar",
+      "series_includes_polarity": true
+    }
+  },
+
+  {
+    "id": "TC-RF11-01",
+    "requirement_id": "RF-11",
+    "title": "Recomendación de topics basada en análisis de entradas seleccionadas",
+    "preconditions": ["Existen entradas seleccionadas y topics disponibles en el dataset."],
+    "input": {
+      "selected_entries": [
+        { "topic": "music", "text": "Me gusta el rock", "polarity": "positive" }
+      ],
+      "k": 3
+    },
+    "steps": ["Solicitar recomendaciones de topics."],
+    "expected": {
+      "result": "SUCCESS",
+      "recommendations_count": 3,
+      "recommendations_are_topics": true,
+      "does_not_include_original_topic_if_rule_applies": "Si vuestro criterio excluye el topic original, validar que no aparece"
+    }
+  },
+  {
+    "id": "TC-RF11-02",
+    "requirement_id": "RF-11",
+    "title": "Recomendación con k = 0 devuelve lista vacía",
+    "preconditions": ["Sistema con datos."],
+    "input": { "k": 0, "selected_entries": [{ "topic": "music", "text": "..." }] },
+    "steps": ["Solicitar recomendaciones con k=0."],
+    "expected": {
+      "result": "SUCCESS",
+      "recommendations_count": 0
+    }
+  },
+
+  {
+    "id": "TC-RFN1-01",
+    "requirement_id": "RFN-1",
+    "title": "La API expone documentación OpenAPI",
+    "preconditions": ["API en ejecución."],
+    "input": {
+      "endpoint": "/openapi.json"
+    },
+    "steps": ["Hacer GET al endpoint de especificación OpenAPI."],
+    "expected": {
+      "result": "SUCCESS",
+      "http_status": 200,
+      "content_type_contains": "application/json",
+      "openapi_field_present": true
+    }
+  },
+  {
+    "id": "TC-RFN1-02",
+    "requirement_id": "RFN-1",
+    "title": "OpenAPI incluye endpoints principales del sistema",
+    "preconditions": ["API en ejecución y OpenAPI disponible."],
+    "input": {
+      "check_paths_include": ["Podcast", "Episodio", "Métrica", "Observación", "Recomendación"]
+    },
+    "steps": [
+      "Obtener el documento OpenAPI.",
+      "Verificar que existen paths/operations para entidades y recomendación."
+    ],
+    "expected": {
+      "result": "SUCCESS",
+      "paths_present": true
+    }
+  },
+
+  {
+    "id": "TC-RFN2-01",
+    "requirement_id": "RFN-2",
+    "title": "La API está protegida con HTTPS",
+    "preconditions": ["API desplegada con soporte HTTPS (si aplica)."],
+    "input": {
+      "url": "http://<host>/api/...",
+      "http_method": "GET"
+    },
+    "steps": ["Intentar consumir la API por HTTP sin cifrado."],
+    "expected": {
+      "result": "ERROR",
+      "http_status": [301, 302, 400, 403],
+      "note": "Debe forzar redirección a HTTPS o denegar HTTP según implementación"
+    }
+  },
+  {
+    "id": "TC-RFN2-02",
+    "requirement_id": "RFN-2",
+    "title": "La API requiere autenticación si no hay HTTPS (o además de HTTPS)",
+    "preconditions": ["API en ejecución."],
+    "input": {
+      "http_method": "GET",
+      "endpoint": "/api/...",
+      "auth": "none"
+    },
+    "steps": ["Consumir endpoint protegido sin credenciales/token."],
+    "expected": {
+      "result": "ERROR",
+      "http_status": 401,
+      "error_metric": "UNAUTHORIZED"
+    }
+  },
+  {
+    "id": "TC-RFN2-03",
+    "requirement_id": "RFN-2",
+    "title": "La API permite acceso con credenciales válidas",
+    "preconditions": ["Existe usuario/contraseña o token válidos."],
+    "input": {
+      "http_method": "GET",
+      "endpoint": "/api/...",
+      "auth": "valid"
+    },
+    "steps": ["Consumir endpoint protegido con credenciales correctas."],
+    "expected": {
+      "result": "SUCCESS",
+      "http_status": 200
+    }
+  }
+]
